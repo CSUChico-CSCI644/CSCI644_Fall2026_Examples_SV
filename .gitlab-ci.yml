@@ -75,10 +75,10 @@ release:
       links:
         - name: "release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}.tar.gz"
           url: "$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/file/release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}.tar.gz"
-    artifacts:
-      name: "release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
-      paths:
-        - release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}.tar.gz
-      expire_in: 1 week
-    rules:
-      - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  artifacts:
+    name: "release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
+    paths:
+      - release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}.tar.gz
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
