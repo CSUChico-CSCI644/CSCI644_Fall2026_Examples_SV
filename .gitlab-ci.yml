@@ -24,7 +24,7 @@ train:
   image: $CI_REGISTRY_IMAGE:latest
   script:
     - test -n "${token}" || { echo "token is missing from this job"; exit 1; }
-    - test_var = python timestamp.py
+    - test_var = $(python timestamp.py)
     - current_value = "${month:0}"
     - 'echo "Current value: ${test_var}; Current value: ${current_value}"'
     - >-
