@@ -3,16 +3,20 @@ services:
   - docker:dind
 
 stages:
-  - build
+  # - build
   - train
+  - deploy
 
-build:
-  stage: build
-  script:
-    - docker info
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:latest .
-    - docker push $CI_REGISTRY_IMAGE:latest
+variables:
+  RELEASE_MAJOR: "1"
+
+# build:
+#   stage: build
+#   script:
+#     - docker info
+#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+#     - docker build -t $CI_REGISTRY_IMAGE:latest .
+#     - docker push $CI_REGISTRY_IMAGE:latest
 
 
 train:
@@ -20,7 +24,7 @@ train:
   image: $CI_REGISTRY_IMAGE:latest
   script:
     - test -n "${token}" || { echo "token is missing from this job"; exit 1; }
-    - test_var = $(python timestamp.py)
+    - test_var = python timestamp.py
     - current_value = "${month:0}"
     - 'echo "Current value: ${test_var}; Current value: ${current_value}"'
     - >-
@@ -30,3 +34,21 @@ train:
       else
         echo "Current month is not greater; leaving month unchanged";
       fi
+
+#Artifact deployment stage
+deploy: 
+  stage: deploy
+  image: $CI_REGISTRY_IMAGE:latest
+  script:
+    - echo "Deploying application..."
+    - version = "${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
+    - mkdir -p release
+    - echo "Version: ${version}" > release/version.txt
+    - echo "hello world" > release/hello.txt
+    - tar -czf release-${version}.tar.gz release/
+    - echo "Creating release artifact: release-${version}.tar.gz"
+  artifacts:
+    name: "release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
+    paths:
+      - release-${version}.${CI_PIPELINE_IID}.tar.gz
+    expires_in: 1 week
