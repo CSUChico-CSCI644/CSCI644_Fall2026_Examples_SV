@@ -43,12 +43,12 @@ deploy:
     - echo "Deploying application..."
     - version = "${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
     - mkdir -p release
-    - echo "Version: ${version}" > release/version.txt
+    - 'echo "Version: ${version}" > release/version.txt'
     - echo "hello world" > release/hello.txt
     - tar -czf release-${version}.tar.gz release/
-    - echo "Creating release artifact: release-${version}.tar.gz"
+    - 'echo "Creating release artifact: release-${version}.tar.gz"'
   artifacts:
     name: "release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
     paths:
       - release-${version}.${CI_PIPELINE_IID}.tar.gz
-    expires_in: 1 week
+    expire_in: 1 week
