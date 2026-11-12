@@ -24,8 +24,8 @@ train:
   image: $CI_REGISTRY_IMAGE:latest
   script:
     - test -n "${token}" || { echo "token is missing from this job"; exit 1; }
-    - test_var = $(python timestamp.py)
-    - current_value = "${month:0}"
+    - test_var=$(python timestamp.py)
+    - current_value="${month}"
     - 'echo "Current value: ${test_var}; Current value: ${current_value}"'
     - >-
       if [ "${test_var}" -gt "${current_value}" ]; then
@@ -41,7 +41,7 @@ deploy:
   image: $CI_REGISTRY_IMAGE:latest
   script:
     - echo "Deploying application..."
-    - version = "${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
+    - version="${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
     - mkdir -p release
     - 'echo "Version: ${version}" > release/version.txt'
     - echo "hello world" > release/hello.txt
@@ -50,5 +50,5 @@ deploy:
   artifacts:
     name: "release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
     paths:
-      - release-${version}.${CI_PIPELINE_IID}.tar.gz
+      - release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}.tar.gz
     expire_in: 1 week
