@@ -26,6 +26,7 @@ train:
     - test -n "${token}" || { echo "token is missing from this job"; exit 1; }
     - test_var=$(python timestamp.py)
     - current_value="${month}"
+    - apt update && apt install -y curl
     - 'echo "Current value: ${test_var}; Current value: ${current_value}"'
     - >-
       if [ "${test_var}" -gt "${current_value}" ]; then
