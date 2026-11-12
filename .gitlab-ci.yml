@@ -3,20 +3,21 @@ services:
   - docker:dind
 
 stages:
-  - build
+  # - build
   - train
   - deploy
+  - release
 
 variables:
   RELEASE_MAJOR: "1"
 
-build:
-  stage: build
-  script:
-    - docker info
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:latest .
-    - docker push $CI_REGISTRY_IMAGE:latest
+# build:
+#   stage: build
+#   script:
+#     - docker info
+#     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+#     - docker build -t $CI_REGISTRY_IMAGE:latest .
+#     - docker push $CI_REGISTRY_IMAGE:latest
 
 
 train:
@@ -26,7 +27,7 @@ train:
     - test -n "${token}" || { echo "token is missing from this job"; exit 1; }
     - test_var=$(python timestamp.py)
     - current_value="${month}"
-    - 'echo "Current value: ${test_var}; Current value: ${current_value}"'
+    - 'echo "Current value: ${test_var}; Stored value: ${current_value}"'
     - >-
       if [ "${test_var}" -gt "${current_value}" ]; then
         echo "Current month is greater; updating month";
@@ -52,3 +53,32 @@ deploy:
     paths:
       - release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}.tar.gz
     expire_in: 1 week
+
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/cli:v1.58.0
+  needs:
+    - job: deploy
+      artifacts: true
+  script:
+    - echo "Releasing application..."
+    - version="${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
+    - 'echo "Version: ${version}"'
+    - 'echo "Release artifact: release-${version}.tar.gz"'
+    - 'echo "Release process completed."'
+  release:
+    name: "Release ${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
+    description: "Automated release of version ${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
+    tag_name: "v${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
+    ref: "$CI_COMMIT_SHA"
+    assets:
+      links:
+        - name: "release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}.tar.gz"
+          url: "$CI_PROJECT_URL/-/jobs/$CI_JOB_ID/artifacts/file/release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}.tar.gz"
+    artifacts:
+      name: "release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}"
+      paths:
+        - release-${RELEASE_MAJOR}.${CI_PIPELINE_IID}.tar.gz
+      expire_in: 1 week
+    rules:
+      - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
