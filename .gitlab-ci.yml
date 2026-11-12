@@ -1,0 +1,32 @@
+image: docker:latest
+services:
+  - docker:dind
+
+stages:
+  - build
+  - train
+
+build:
+  stage: build
+  script:
+    - docker info
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAME:latest .
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAME:latest
+
+
+train:
+  stage: train
+  image: $CI_REGISTRY/$CI_PROJECT_NAME:latest
+  script:
+    - test -n "${token}" || (echo "Error: token variable is not set" && exit 1)
+    - test_var = $(python timestamp.py)
+    - current_value = "${month:0}"
+    - echo "Current value: ${test_var}; Current value: ${current_value}"
+    - >-
+      if [ "${test_var}" -gt "${current_value}" ]; then
+        echo "Current month is greater; updating month";
+        curl --fail-with-body --request PUT --header "PRIVATE-TOKEN: ${token}" "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/variables/month" --form-string "value=${test_var}";
+      else
+        echo "Current month is not greater; leaving month unchanged";
+      fi
