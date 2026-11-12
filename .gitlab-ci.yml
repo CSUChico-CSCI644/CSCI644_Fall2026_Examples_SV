@@ -19,7 +19,7 @@ train:
   stage: train
   image: $CI_REGISTRY/$CI_PROJECT_NAME:latest
   script:
-    - test -n "${token}" || {echo "Error: token variable is not set" && exit 1}
+    - test -n "${token}" || {echo "Error: token variable is not set"; exit 1; }
     - test_var = $(python timestamp.py)
     - current_value = "${month:0}"
     - 'echo "Current value: ${test_var}; Current value: ${current_value}"'
